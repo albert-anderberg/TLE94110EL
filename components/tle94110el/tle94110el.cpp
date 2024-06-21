@@ -7,7 +7,7 @@ namespace tle94110el {
 static const char *TAG = "tle94110el.component";
 
 void tle94110el::setup() {
-
+    ESP_LOGI(TAG, "Test setup log");
 }
 
 void tle94110el::loop() {
