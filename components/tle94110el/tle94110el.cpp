@@ -34,7 +34,7 @@ void tle94110el::setup() {
     ESP_LOGI(TAG, "Spi device disabled");
 
 
-    delay(1);
+    delay(10);
 
     this->enable();
     ESP_LOGI(TAG, "SPI device enabled");
@@ -56,10 +56,13 @@ void tle94110el::setup() {
 
 
 
-    delay(1);
+    delay(10);
 
     this->enable();
     ESP_LOGI(TAG, "SPI device enabled");
+
+    data[0] = 0b01100111;
+    data[1] = 0;
 
     this->transfer_array(data, sizeof(data));
     ESP_LOGI(TAG, "Array transfered");
