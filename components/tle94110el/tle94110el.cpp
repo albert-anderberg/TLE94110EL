@@ -1,5 +1,5 @@
 #include "esphome/core/log.h"
-#include "empty_spi_component.h"
+#include "tle94110el.h"
 
 namespace esphome {
 namespace tle94110el {
