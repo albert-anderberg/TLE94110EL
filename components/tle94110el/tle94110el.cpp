@@ -16,11 +16,16 @@ void tle94110el::setup() {
     ESP_LOGI(TAG, "SPI device enabled");
 
     uint8_t data[] = {0b01100111, 0};
+    char *msg = "12345678902134567890";
 
     this->transfer_array(data, sizeof(data));
     ESP_LOGI(TAG, "Array transfered");
-    ESP_LOGI(TAG, data[0]);
-    ESP_LOGI(TAG, data[1]);
+    
+    snprintf(msg, sizeof(msg), "%u", data[0]);
+    ESP_LOGI(TAG, msg);
+
+    snprintf(msg, sizeof(msg), "%u", data[1]);
+    ESP_LOGI(TAG, msg);
 
     this->disable();
     ESP_LOGI(TAG, "Spi device disabled");
