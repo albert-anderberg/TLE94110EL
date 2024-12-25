@@ -4,87 +4,53 @@
 namespace esphome {
 namespace tle94110el {
 
-static const char *TAG = "tle94110el";
+static const char *TAG = "TLE94110EL";
 
-void tle94110el::setup() {
-    ESP_LOGI(TAG, "Setup start");
+void TLE94110EL::setup() { this->spi_setup(); }
 
-    this->spi_setup();
-    ESP_LOGI(TAG, "SPI setup complete");
+void TLE94110EL::loop() {}
 
+void TLE94110EL::dump_config() { ESP_LOGCONFIG(TAG, "Empty SPI component"); }
 
-    delay(1);
+uint8_t TLE94110EL::transfer(uint8_t address, uint8_t data) {
+  this->enable();  // Set chip select pin
 
-    this->enable();
-    ESP_LOGI(TAG, "SPI device enabled");
+  global_status = this->transfer_byte(address);
+  uint8_t result = this->transfer_byte(data);
 
-    uint8_t data[] = {0b01100111, 0};
-    char msg[20];	
+  this->disable();  // Clear chip select pin
 
-    this->transfer_array(data, sizeof(data));
-    ESP_LOGI(TAG, "Array transfered");
-    
-    snprintf(msg, sizeof(msg), "%u", data[0]);
-    ESP_LOGI(TAG, msg);
-
-    snprintf(msg, sizeof(msg), "%u", data[1]);
-    ESP_LOGI(TAG, msg);
-
-    this->disable();
-    ESP_LOGI(TAG, "Spi device disabled");
-
-
-    delay(10);
-
-    this->enable();
-    ESP_LOGI(TAG, "SPI device enabled");
-
-    uint8_t data1[] = {0b10011011, 0};
-    char msg1[20];	
-
-    this->transfer_array(data1, sizeof(data1));
-    ESP_LOGI(TAG, "Array transfered");
-    
-    snprintf(msg1, sizeof(msg1), "%u", data1[0]);
-    ESP_LOGI(TAG, msg1);
-
-    snprintf(msg1, sizeof(msg1), "%u", data1[1]);
-    ESP_LOGI(TAG, msg1);
-
-    this->disable();
-    ESP_LOGI(TAG, "Spi device disabled");
-
-
-
-    delay(10);
-
-    this->enable();
-    ESP_LOGI(TAG, "SPI device enabled");
-
-    data[0] = 0b01100111;
-    data[1] = 0;
-
-    this->transfer_array(data, sizeof(data));
-    ESP_LOGI(TAG, "Array transfered");
-    
-    snprintf(msg, sizeof(msg), "%u", data[0]);
-    ESP_LOGI(TAG, msg);
-
-    snprintf(msg, sizeof(msg), "%u", data[1]);
-    ESP_LOGI(TAG, msg);
-
-    this->disable();
-    ESP_LOGI(TAG, "Spi device disabled");
-
+  return result;
 }
 
-void tle94110el::loop() {
+uint8_t TLE94110EL::readAndClear(uint8_t address, uint8_t data) { return transfer(address | 1 << 7, data); }
 
+uint8_t TLE94110EL::write(uint8_t address, uint8_t data) { return transfer(address | 1 << 7, data); }
+
+uint8_t TLE94110EL::read(uint8_t address) { return transfer((address & 0x7f), 0x00); }
+
+void TLE94110EL::write_channel(uint8_t channel, bool state) {
+  uint32_t map = 0;
+  uint8_t driver = 0;
+
+  if (state) {
+    driver = 0b01;
+  } else {
+    driver = 0b10;
+  }
+
+  map = driver << (2 * (channel - 1)) | ~driver << 16;
+
+  write(HB_ACT_1_CTRL, (uint8_t) (map & 0xff));
+  write(HB_ACT_2_CTRL, (uint8_t) ((map >> 8) & 0xff));
+  write(HB_ACT_3_CTRL, (uint8_t) ((map >> 16) & 0xff));
+
+  delay(50);
+
+  write(HB_ACT_1_CTRL, 0);
+  write(HB_ACT_2_CTRL, 0);
+  write(HB_ACT_3_CTRL, 0);
 }
 
-void tle94110el::dump_config(){
-    ESP_LOGCONFIG(TAG, "Empty SPI component");
-}
-
-}
-}
+}  // namespace tle94110el
+}  // namespace esphome
